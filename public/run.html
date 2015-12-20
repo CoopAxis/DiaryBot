@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta charset="UTF-8" />
+    <title>Diary Bot</title>
+	<meta name="description" content="" />
+	<meta name="author" content="Cyrille Giquello" />
+    <link rel="stylesheet" type="text/css" href="vendor/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/style.css">
+</head>
+
+<body class="">
+
+	<div id="page-loader">
+		<div class="spinner-container">
+			<div class="cmn-spinner__multiball">Loading...</div>
+		</div>
+	</div>
+
+    <nav class="navbar navbar-inverse" role="navigation" data-spy="affix" data-offset-top="60">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">
+                    <div class="title"><span class="glyphicon glyphicon-heart" aria-hidden="true"></span> Diary Bot</div>
+                </a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse " aria-expanded="true">
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="/index.html">Accueil</a></li>
+                    <li><a href="/index.html">À propos</a></li>
+                    <li class="active"><a href="/run.html">Démarrer</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+	<div class="container" id="story">
+		<!--  -->
+		<div class="row">
+			<button class="btn btn-default" id="btn-db-create">create</button>
+			<button class="btn btn-default" id="btn-db-load">load</button>
+			<button class="btn btn-default" id="btn-db-save">save</button>
+		</div>
+		<div class="row">
+			<div class="col-md-6 leftpanel">
+				<div class="row">
+					<ul class="list-group" id="doing-items-list">
+						<li class="list-group-item" id="template-doing-item">
+							<span>1 blabla</span>
+						</li>
+						<li class="list-group-item">
+							2 blabla
+						</li>
+						<li class="list-group-item">
+							3 blabla
+						</li>
+						<li class="list-group-item">
+							4 blabla
+						</li>
+						<li class="list-group-item">
+							5 blabla
+						</li>
+						<li class="list-group-item">
+							6 blabla
+						</li>
+						<li class="list-group-item">
+							7 blabla
+						</li>
+					</ul>
+				</div>
+				<div class="row controls">
+					<button class="btn btn-default" id="btn-doing-pause">pause</button>
+					<button class="btn btn-default" id="btn-doing-end">fin</button>
+				</div>
+			</div>
+			<div class="col-md-6 rightpanel">
+				<div class="row">
+					<ul class="list-group" id="next-items-list">
+						<li class="next-item list-group-item" id="template-next-item-high">
+							<button class="btn btn-primary"><span>1 Cras justo odio</span></button>
+						</li>
+						<li class="next-item list-group-item">
+							<button class="btn btn-primary">2 Cras justo odio</button>
+						</li>
+						<li class="next-item list-group-item" id="template-next-item-low">
+							<button class="btn btn-default"><span>3 Cras justo odio</span></button>
+						</li>
+						<li class="next-item list-group-item">
+							<button class="btn btn-default">4 Cras justo odio</button>
+						</li>
+						<li class="next-item list-group-item">
+							<button class="btn btn-default">5 Cras justo odio</button>
+						</li>
+						<li class="next-item list-group-item">
+							<button class="btn btn-default">6 Cras justo odio</button>
+						</li>
+						<li class="next-item list-group-item">
+							<button class="btn btn-default">7 Cras justo odio</button>
+						</li>
+					</ul>
+				</div>
+				<div class="row">
+					<button class="btn btn-default" id="btn-item-back"> &lt;&lt;&lt;</button>
+					<button class="btn btn-default" id="btn-item-new">+ step</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+    <footer class="app-footer">
+      <div class="container">
+        <p class="text-muted">&copy; 2015, Des citoyens du monde.</p>
+      </div>
+    </footer>
+    <script type="text/javascript" src="vendor/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="vendor/bootstrap/bootstrap.min.js"></script>
+    <script type="text/javascript" src="vendor/SQL.js/sql.min.js"></script>
+    <script type="text/javascript" src="js/diarybot.js"></script>
+    <script>
+
+    function onDiaryBotError( ex )
+    {
+    	console.log( ex );
+    	if( typeof ex.message === 'undefined' )
+    		alert('ERROR! '+ex);
+    	else
+    		alert('ERROR! '+ex.message);
+    }
+
+    var templates = {
+       	"next_item_high" : null ,
+       	"next_item_low" : null ,
+       	"doing_item" : null
+    } ;
+
+    function onNextItemClick()
+    {
+    	console.log('onNextItemClick()');
+
+    	$('#page-loader').show();
+
+		//console.log(this);
+		var item = $(this).prop('data-item') ;
+		console.log( item.id );
+/*
+		var p = new Promise(function( resolve, reject )
+	   	{
+    		diaryBot.nextItems( item.id )
+        	.then(function( items )
+    		{
+        		addDoingItem( item );
+    			fillNextItemsList( items );
+            	resolve();
+    		})
+    		.then(function()
+    		{
+        		//$('#page-loader').hide();
+    		})
+    		.catch(function(reason){
+    			reject(reason);
+    		});
+    	});
+*/
+
+		addDoingItem( item );
+
+		loadNextItems( item ).then(function()
+    	{
+    		$('#page-loader').hide();
+    	})
+    	.catch(function(reason)
+    	{
+    		onDiaryBotError(reason);
+    		$('#page-loader').hide();
+    	});
+
+    	
+    }
+
+
+    function onItemBack()
+    {
+    	console.log('onItemBack()');
+    	var oo = $('#doing-items-list > li');
+    	switch( oo.length )
+    	{
+    	case 0 :
+    		return ;
+    		break;
+    	case 1 :
+    		loadFirstItems();
+    		break;
+    	default:
+			$(oo[ oo.length-1 ]).remove();
+			loadNextItems( $(oo[ oo.length-2 ]).prop('data-item') ).then(function()
+	    	{
+	    	})
+	    	.catch(function(reason)
+	    	{
+	    		onDiaryBotError(reason);
+	    	});
+    	}
+
+    }
+
+    function addDoingItem( item )
+    {
+    	//console.log('addDoingItem()');
+    	var o = templates.doing_item.clone();
+    	$('span', o).html(item.label );
+    	o.prop('data-item', item );
+    	o.appendTo( '#doing-items-list' );
+    	//o.click( onDoingItemClick );
+    }
+
+    function loadNextItems( item )
+    {
+    	return new Promise(function(resolve,reject)
+    	{
+    		diaryBot.nextItems( item.id )
+        	.then(function( items )
+    		{
+    			fillNextItemsList( items );
+    			resolve();
+    		})
+    		.catch(function(reason)
+    		{
+    			reject( reason );
+    		});    		
+    	});
+    }
+
+    function fillNextItemsList( items, forceHigh )
+	{
+		$('#next-items-list > li').remove();
+
+		items.forEach(function( item, index, array )
+		{
+			//console.log(item, index);
+			var o ;
+			
+			if( typeof forceHigh === 'undefined' )
+				o = item.weight > 0
+					? templates.next_item_high.clone()
+					: templates.next_item_low.clone() ;
+			else
+				o = templates.next_item_high.clone() ;
+			$('span', o).html(item.label );
+			o.prop('data-item', item );
+			o.click( onNextItemClick );
+			o.appendTo( '#next-items-list' );
+		});
+
+    }
+
+    jQuery(function()
+    {
+    	// Prepare doing items list
+
+		templates.doing_item = $('#template-doing-item').detach().removeAttr('id');
+		$('#doing-items-list > li').remove();
+
+		// Prepare next items list
+
+		templates.next_item_high = $('#template-next-item-high').detach().removeAttr('id');
+		templates.next_item_low = $('#template-next-item-low').detach().removeAttr('id');
+		$('#next-items-list > li').remove();
+
+		// Connecting buttons
+
+		$('#btn-db-create').click( onDbCreate );
+		$('#btn-db-load').click( onDbLoad );
+		$('#btn-db-save').click( onDbSave );
+
+		$('#btn-item-back').click( onItemBack );
+
+    });
+
+    function loadFirstItems()
+    {
+    	$('#doing-items-list > li').remove();
+
+    	diaryBot.nextItems()
+    	.then(function( items )
+		{
+			fillNextItemsList( items );
+		})
+		.then(function()
+		{
+		})
+		.catch(function(reason)
+		{
+			onDiaryBotError(reason);
+		});
+    }
+
+    function onDbCreate()
+    {
+    	$('#page-loader').show();
+
+		jQuery.ajax('js/schema.txt')
+		.done( function( data, textStatus, jqXHR )
+		{
+			diaryBot.create( data );
+			loadFirstItems();
+		})
+		.fail( function( jqXHR, textStatus, error )
+		{
+			
+		})
+		.always(function()
+		{
+			$('#page-loader').hide();
+		});
+
+    }
+
+    function onDbLoad()
+    {
+    	$('#page-loader').show();
+
+    	var p = new Promise(function( resolve, reject )
+	   	{
+        	diaryBot.loadFromBinString( localStorage.getItem( 'diaryBotDb' ) );
+    		loadFirstItems();
+        	resolve();
+    	});
+    	p.then(function()
+    	{
+    		$('#page-loader').hide();
+    	});
+    }
+
+    function onDbSave()
+    {
+    	$('#page-loader').show();
+
+    	var p = new Promise(function( resolve, reject )
+    	{
+        	window.localStorage.setItem( 'diaryBotDb', diaryBot.toBinString() );
+        	resolve();
+    	});
+    	p.then(function()
+    	{
+    		$('#page-loader').hide();
+    	});
+
+    }
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,150 @@
+
+/*
+
+select i1.label AS L1, i2.label as L2, items_has_items.weight
+from items i1
+left join items_has_items on ( items_id = i1.id )
+left join items i2 on ( items_id_next = i2.id )
+where items_id = 1 or items_id is null
+order by  items_has_items.weight desc, L2 ASC
+
+*/
+
+-- -----------------------------------------------------
+-- Table `stories`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `stories` ;
+CREATE TABLE IF NOT EXISTS `stories` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT ,
+  `date` DATETIME NULL,
+  `duration` INT NULL,
+  `duration_manual` TINYINT(1) NOT NULL DEFAULT 0
+);
+
+-- -----------------------------------------------------
+-- Table `item_types`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `item_types` ;
+CREATE TABLE IF NOT EXISTS `item_types` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT ,
+  `label` VARCHAR(255) NOT NULL DEFAULT 'inconnu'
+);
+CREATE UNIQUE INDEX `item_types_label_UNIQUE` ON `item_types` (`label` ASC);
+
+-- -----------------------------------------------------
+-- Table `items`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `items` ;
+CREATE TABLE IF NOT EXISTS `items` (
+  `id` INTEGER PRIMARY KEY AUTOINCREMENT ,
+  `label` VARCHAR(255) NOT NULL DEFAULT 'inconnu',
+  `item_types_id` INT NOT NULL,
+  `weight` INT NULL,
+  CONSTRAINT `fk_items_item_types1`
+    FOREIGN KEY (`item_types_id`)
+    REFERENCES `item_types` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+CREATE UNIQUE INDEX `items_label_UNIQUE` ON `items` (`label` ASC);
+-- CREATE INDEX `fk_items_item_types1_idx` ON `items` (`item_types_id` ASC);
+
+-- -----------------------------------------------------
+-- Table `stories_has_items`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `stories_has_items` ;
+CREATE TABLE IF NOT EXISTS `stories_has_items` (
+  `stories_id` INT NOT NULL,
+  `items_id` INT NOT NULL,
+  `order` INT NULL,
+  `value` VARCHAR(255) NULL,
+  PRIMARY KEY (`stories_id`, `items_id`),
+  CONSTRAINT `fk_stories_has_items_stories`
+    FOREIGN KEY (`stories_id`)
+    REFERENCES `stories` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_stories_has_items_items1`
+    FOREIGN KEY (`items_id`)
+    REFERENCES `items` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ;
+
+-- CREATE INDEX `fk_stories_has_items_items1_idx` ON `stories_has_items` (`items_id` ASC);
+-- CREATE INDEX `fk_stories_has_items_stories_idx` ON `stories_has_items` (`stories_id` ASC);
+
+-- -----------------------------------------------------
+-- Table `items_has_items`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `items_has_items` ;
+CREATE TABLE IF NOT EXISTS `items_has_items` (
+  `items_id` INT NOT NULL,
+  `items_id_next` INT NOT NULL,
+  `weight` INT NOT NULL DEFAULT 1,
+  PRIMARY KEY (`items_id`, `items_id_next`),
+  CONSTRAINT `fk_items_has_items_items1`
+    FOREIGN KEY (`items_id`)
+    REFERENCES `items` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_items_has_items_items2`
+    FOREIGN KEY (`items_id_next`)
+    REFERENCES `items` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ;
+
+-- CREATE INDEX `fk_items_has_items_items2_idx` ON `items_has_items` (`items_id_next` ASC);
+-- CREATE INDEX `fk_items_has_items_items1_idx` ON `items_has_items` (`items_id` ASC);
+
+-- -----------------------------------------------------
+-- Data for table `item_types`
+-- -----------------------------------------------------
+
+INSERT INTO `item_types` (`id`, `label`) VALUES (1, 'activité');
+INSERT INTO `item_types` (`id`, `label`) VALUES (2, 'personne');
+INSERT INTO `item_types` (`id`, `label`) VALUES (3, 'valeur');
+INSERT INTO `item_types` (`id`, `label`) VALUES (4, 'culture');
+INSERT INTO `item_types` (`id`, `label`) VALUES (5, 'lieu');
+INSERT INTO `item_types` (`id`, `label`) VALUES (6, 'lieu2');
+INSERT INTO `item_types` (`id`, `label`) VALUES (7, 'client');
+
+-- -----------------------------------------------------
+-- Data for table `items`
+-- -----------------------------------------------------
+
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (1, 'Yvan', 2, 4);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (2, 'Caroline', 2, 2);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (3, 'Franck', 2, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (4, 'Éric', 2, 1);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (5, 'Récolte', 1, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (6, 'Désherbage', 1, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (7, 'Peséee', 1, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (8, 'Vente', 1, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (9, 'Jardin #1', 5, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (10, 'Jardin #2', 5, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (11, 'Parcelle #1', 6, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (12, 'Parcelle #2', 6, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (13, 'Parcelle #3', 6, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (14, 'Poids', 3, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (15, 'Quantité', 3, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (16, 'Prix', 3, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (17, 'Mâche', 4, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (18, 'Radis', 4, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (19, 'Pomme de terre', 4, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (20, 'Poireau', 4, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (21, 'Choux vert', 4, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (22, 'Particulier', 7, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (23, 'Revendeur', 7, NULL);
+INSERT INTO `items` (`id`, `label`, `item_types_id`, `weight`) VALUES (24, 'Restaurateur', 7, NULL);
+
+-- -----------------------------------------------------
+-- Data for table `items_has_items`
+-- -----------------------------------------------------
+
+INSERT INTO `items_has_items` (`items_id`, `items_id_next`, `weight`) VALUES (1, 5, 7);
+INSERT INTO `items_has_items` (`items_id`, `items_id_next`) VALUES (1, 6);
+INSERT INTO `items_has_items` (`items_id`, `items_id_next`, `weight`) VALUES (2, 5, 8);
+

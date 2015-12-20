@@ -1,0 +1,104 @@
+@CHARSET "UTF-8";
+
+#story
+{	
+}
+
+#story .leftpanel
+{	
+}
+
+#story .leftpanel .list-group
+{	
+	height: 300px !important;
+	overflow: scroll;
+}
+
+#story .rightpanel
+{	
+}
+
+#story .rightpanel .list-group
+{	
+	height: 300px !important;
+	overflow: scroll;
+}
+
+div#page-loader
+{
+  position: absolute;
+  top: 0;
+  bottom: 0%;
+  left: 0;
+  right: 0%;
+  width: 100%;
+  /*background-color: white;*/
+  /*background-color: transparent;*/
+  background-color: rgba(220, 220, 220, 0.4);
+  text-align: center;
+  vertical-align: middle;
+  z-index: 99;
+  display: none;
+  padding: auto;
+  margin: auto;
+}
+
+/* ============================================================
+  SPINNER CONTAINER
+
+  http://callmenick.com/post/more-css-spinners-loaders
+
+============================================================ */
+.spinner-container
+{
+	position: absolute;
+ 	top: 40%;
+	left: 50%;
+}
+
+/* SPINNER - COMMON */
+
+[class*="cmn-spinner"] {
+  position: relative;
+  margin: 0 auto;
+  width: 100px;
+  height: 100px;
+  color: rgba(0, 0, 0, 0);
+  font-size: 0;
+  text-indent: -99999px;
+}
+
+/* SPINNER - MULTIBALL */
+
+.cmn-spinner__multiball {
+  animation: cmn-spinner--animation__multiball 1.5s infinite;
+}
+.cmn-spinner__multiball::before, .cmn-spinner__multiball::after {
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto 0;
+  width: 48%;
+  height: 48%;
+  border-radius: 100%;
+  content: "";
+}
+.cmn-spinner__multiball::before {
+  left: 0;
+  border: solid 2px #17b517;
+}
+.cmn-spinner__multiball::after {
+  right: 0;
+  border: solid 2px #efea10;
+}
+
+/* animation keyframs */
+@keyframes cmn-spinner--animation__multiball
+{
+	0% { transform: rotate(0); }
+	40% { transform: rotate(180deg); }
+	50% { transform: rotate(180deg); }
+	90% { transform: rotate(360deg); }
+	100% { transform: rotate(360deg); }
+}
