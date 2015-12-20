@@ -150,103 +150,77 @@
 		//console.log(this);
 		var item = $(this).prop('data-item') ;
 		console.log( item.id );
-/*
-		var p = new Promise(function( resolve, reject )
-	   	{
-    		diaryBot.nextItems( item.id )
-        	.then(function( items )
-    		{
-        		addDoingItem( item );
-    			fillNextItemsList( items );
-            	resolve();
-    		})
-    		.then(function()
-    		{
-        		//$('#page-loader').hide();
-    		})
-    		.catch(function(reason){
-    			reject(reason);
-    		});
-    	});
-*/
 
 		addDoingItem( item );
 
-		loadNextItems( item ).then(function()
-    	{
-    		$('#page-loader').hide();
-    	})
-    	.catch(function(reason)
-    	{
-    		onDiaryBotError(reason);
-    		$('#page-loader').hide();
-    	});
+		fillNextItemsList( diaryBot.nextItems( item.id ) );
 
-    	
+   		$('#page-loader').hide();
+
     }
-
 
     function onItemBack()
     {
     	console.log('onItemBack()');
-    	var oo = $('#doing-items-list > li');
-    	switch( oo.length )
-    	{
-    	case 0 :
-    		return ;
-    		break;
-    	case 1 :
-    		loadFirstItems();
-    		break;
-    	default:
-			$(oo[ oo.length-1 ]).remove();
-			loadNextItems( $(oo[ oo.length-2 ]).prop('data-item') ).then(function()
-	    	{
-	    	})
-	    	.catch(function(reason)
-	    	{
-	    		onDiaryBotError(reason);
-	    	});
-    	}
-
+    	removeDoingItem();
     }
+
+	function removeDoingItem()
+	{
+    	console.log('removeDoingItem()');
+
+    	var doingItems = $('#doing-items-list > li'),
+		ndi = doingItems.length ;
+		switch( ndi )
+		{
+		case 0 :
+			return ;
+		case 1 :
+			loadFirstItems();
+			break;
+		default:
+			$(doingItems[ ndi-1 ]).remove();
+			var item = $(doingItems[ ndi-2 ]).prop('data-item');
+			fillNextItemsList( diaryBot.nextItems( item.id ) );
+		}
+
+	}
 
     function addDoingItem( item )
     {
-    	//console.log('addDoingItem()');
+		console.log('addDoingItem()');
+
+    	var doingItems = $('#doing-items-list > li'),
+
+		ndi = doingItems.length ;
+		switch( ndi )
+		{
+		case 0 :
+	    	diaryBot.linkItem( item );
+			break;
+		default:
+	    	diaryBot.linkItem( $(doingItems[ ndi-1 ]).prop('data-item'), item );
+		}
+
     	var o = templates.doing_item.clone();
-    	$('span', o).html(item.label );
+    	$('span', o).html( item.label );
     	o.prop('data-item', item );
     	o.appendTo( '#doing-items-list' );
     	//o.click( onDoingItemClick );
-    }
 
-    function loadNextItems( item )
-    {
-    	return new Promise(function(resolve,reject)
-    	{
-    		diaryBot.nextItems( item.id )
-        	.then(function( items )
-    		{
-    			fillNextItemsList( items );
-    			resolve();
-    		})
-    		.catch(function(reason)
-    		{
-    			reject( reason );
-    		});    		
-    	});
     }
 
     function fillNextItemsList( items, forceHigh )
 	{
+    	//console.log('fillNextItemsList()');
+
 		$('#next-items-list > li').remove();
 
 		items.forEach(function( item, index, array )
 		{
-			//console.log(item, index);
+			console.log(index, item);
 			var o ;
-			
+
 			if( typeof forceHigh === 'undefined' )
 				o = item.weight > 0
 					? templates.next_item_high.clone()
@@ -288,18 +262,7 @@
     {
     	$('#doing-items-list > li').remove();
 
-    	diaryBot.nextItems()
-    	.then(function( items )
-		{
-			fillNextItemsList( items );
-		})
-		.then(function()
-		{
-		})
-		.catch(function(reason)
-		{
-			onDiaryBotError(reason);
-		});
+    	fillNextItemsList( diaryBot.nextItems() );
     }
 
     function onDbCreate()
