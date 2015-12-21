@@ -16,13 +16,12 @@ var diaryBot =
 
 	initDb : function()
 	{
-
 		this.sthNextItemsFirst = this.db.prepare('SELECT * FROM items ORDER BY weight DESC' );
 
 	    sql = 'SELECT i2.id, i2.label, i2.item_types_id, items_has_items.weight ';
 	    sql+= ' FROM items i2' ;
 	    sql+= ' LEFT JOIN items_has_items ON ( items_id_next = i2.id )' ;
-	    sql+= ' LEFT JOIN items i1 ON ( items_id = i1.id )' ;
+	    //sql+= ' LEFT JOIN items i1 ON ( items_id = i1.id )' ;
 	    sql+= ' WHERE items_id = $previousId' ;
 	    sql+= ' ORDER BY items_has_items.weight DESC, i2.label ASC' ;
 	    this.sthNextItemsNext = this.db.prepare( sql );
@@ -33,17 +32,20 @@ var diaryBot =
 
 	    this.sthItemWeightNextSelect = this.db.prepare( 'SELECT * FROM items_has_items WHERE items_id = $idFrom and items_id_next = $idTo' );
 	    this.sthItemWeightNextUpdate = this.db.prepare( 'UPDATE items_has_items SET weight = weight+1 WHERE items_id = $idFrom and items_id_next = $idTo' );
+	    //this.sthItemWeightNextInsert = this.db.prepare( 'INSERT INTO items_has_items (items_id, items_id_next, weight) VALUES ($idFrom, $idTo, 1)' );
 	    this.sthItemWeightNextInsert = this.db.prepare( 'INSERT INTO items_has_items (items_id, items_id_next) VALUES ($idFrom, $idTo)' );
 	},
 
 	linkItem : function( itemFrom, itemTo )
     {
-    	if( typeof itemTo === 'undefined' )
+    	if( typeof itemTo === 'undefined' || itemTo == null )
     	{
+    		console.log( 'add weight to "'+itemFrom.label+'"' );
     		this.sthItemWeightFirstUpdate.run( { $id:itemFrom.id } );
     	}
     	else
     	{
+    		console.log('add weight to link "'+itemFrom.label+'"-"'+itemTo.label+'"');
     		row = diaryBot.sthItemWeightNextSelect.get( { $idFrom:itemFrom.id, $idTo:itemTo.id } );
     		if( row.length == 0 )
     		{
@@ -61,7 +63,7 @@ var diaryBot =
 		var	self = this,
 			rows = [] ;
 
-		if( typeof previousId === 'undefined' )
+		if( typeof previousId === 'undefined' || previousId == null )
 		{
 			var sth = self.sthNextItemsFirst ;
 			while( sth.step() )
@@ -78,6 +80,7 @@ var diaryBot =
 			while( sth.step() )
 			{
 				o = sth.getAsObject();
+				console.log('found link ',o.label, o.weight);
 		        rows.push( o );
 		        filteredIds.push( o.id );
 			}

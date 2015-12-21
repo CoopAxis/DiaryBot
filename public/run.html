@@ -77,8 +77,9 @@
 					</ul>
 				</div>
 				<div class="row controls">
-					<button class="btn btn-default" id="btn-doing-pause">pause</button>
-					<button class="btn btn-default" id="btn-doing-end">fin</button>
+					<button class="btn btn-default" id="btn-doing-start" disabled="disabled">start</button>
+					<button class="btn btn-default" id="btn-doing-pause" disabled="disabled">pause</button>
+					<button class="btn btn-default" id="btn-doing-end" disabled="disabled">end</button>
 				</div>
 			</div>
 			<div class="col-md-6 rightpanel">
@@ -108,8 +109,8 @@
 					</ul>
 				</div>
 				<div class="row">
-					<button class="btn btn-default" id="btn-item-back"> &lt;&lt;&lt;</button>
-					<button class="btn btn-default" id="btn-item-new">+ step</button>
+					<button class="btn btn-default" id="btn-item-back">&lt;&lt;&lt;</button>
+					<button class="btn btn-default" id="btn-item-new"  disabled="disabled">+ step</button>
 				</div>
 			</div>
 		</div>
@@ -149,10 +150,9 @@
 
 		//console.log(this);
 		var item = $(this).prop('data-item') ;
-		console.log( item.id );
+		console.log( 'selected ', item.label, 'w=', item.weight );
 
 		addDoingItem( item );
-
 		fillNextItemsList( diaryBot.nextItems( item.id ) );
 
    		$('#page-loader').hide();
@@ -190,7 +190,9 @@
     {
 		console.log('addDoingItem()');
 
-    	var doingItems = $('#doing-items-list > li'),
+		var doingItems = $('#doing-items-list > li'),
+
+		// Add a link between items
 
 		ndi = doingItems.length ;
 		switch( ndi )
@@ -218,8 +220,11 @@
 
 		items.forEach(function( item, index, array )
 		{
-			console.log(index, item);
+			//console.log( index, item.label, item.weight );
+
 			var o ;
+
+			// select the template for rendering item: high or low
 
 			if( typeof forceHigh === 'undefined' )
 				o = item.weight > 0
@@ -227,6 +232,9 @@
 					: templates.next_item_low.clone() ;
 			else
 				o = templates.next_item_high.clone() ;
+
+			// construct a GUI element to hold the item
+
 			$('span', o).html(item.label );
 			o.prop('data-item', item );
 			o.click( onNextItemClick );
@@ -320,5 +328,4 @@
 
     </script>
 </body>
-
 </html>

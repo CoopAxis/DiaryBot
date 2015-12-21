@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8" />
+    <title>Diary Bot</title>
+</head>
+
+    <script type="text/javascript" src="vendor/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="vendor/SQL.js/sql.min.js"></script>
+    <script type="text/javascript" src="js/diarybot.js"></script>
+    <script type="text/javascript">
+
+	jQuery(function()
+	{
+
+		var db = new SQL.Database();
+
+		sql = "CREATE TABLE `items_has_items` ( `items_id` INT NOT NULL, `items_id_next` INT NOT NULL, `weight` INT NOT NULL DEFAULT 1, PRIMARY KEY (`items_id`,`items_id_next`) );";
+		db.exec( sql );
+
+		var sth = db.prepare("INSERT INTO items_has_items (items_id,items_id_next) VALUES (?,?)");
+		sth.run([3,4]);
+
+		var sth = db.prepare("SELECT * FROM items_has_items");
+		while( sth.step() )
+		{
+			var o = sth.getAsObject();
+			console.log( o );
+		}
+
+	});
+	
+    </script>
+<body>
+</body>
+</html>

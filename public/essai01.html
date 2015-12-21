@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8" />
+    <title>Diary Bot</title>
+</head>
+
+    <script type="text/javascript" src="vendor/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="vendor/SQL.js/sql.min.js"></script>
+    <script type="text/javascript" src="js/diarybot.js"></script>
+    <script type="text/javascript">
+
+	jQuery(function()
+	{
+		jQuery.ajax('js/schema.txt')
+		.done( function( data, textStatus, jqXHR )
+		{
+			diaryBot.create( data );
+
+			insertOrUpdate( 1, 5 );
+			insertOrUpdate( 3, 5 );
+			insertOrUpdate( 3, 5 );
+
+		})
+		.fail( function( jqXHR, textStatus, error )
+		{
+			console.log('ESSAI01 ERROR '+error );
+		})
+
+	});
+
+	function insertOrUpdate( idFrom, idTo )
+	{
+		var row ;
+
+		row = diaryBot.sthItemWeightNextSelect.get( { $idFrom:idFrom, $idTo:idTo} );
+		console.log( 'initial found: '+row);
+
+		if( row.length == 0 )
+		{
+    		diaryBot.sthItemWeightNextInsert.run( { $idFrom:idFrom, $idTo:idTo} );	
+		}
+		else
+		{
+    		diaryBot.sthItemWeightNextUpdate.run( { $idFrom:idFrom, $idTo:idTo} ); 			
+		}
+
+		row = diaryBot.sthItemWeightNextSelect.get( { $idFrom:idFrom, $idTo:idTo} );
+		console.log( 'now got: ' + row );
+				
+	}
+	
+    </script>
+<body>
+</body>
+</html>
