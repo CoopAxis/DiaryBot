@@ -138,12 +138,195 @@
     		alert('ERROR! '+ex.message);
     }
 
-    var diaryCtl ;
+    var templates = {
+       	"next_item_high" : null ,
+       	"next_item_low" : null ,
+       	"doing_item" : null
+    };
+
+    function onNextItemClick()
+    {
+    	console.log('onNextItemClick()');
+
+    	$('#page-loader').show();
+
+		//console.log(this);
+		var item = $(this).prop('data-item') ;
+		console.log( 'selected ', item.label, 'w=', item.weight );
+
+		addDoingItem( item );
+		fillNextItemsList( diaryBot.nextItems( item.id ) );
+
+   		$('#page-loader').hide();
+
+    }
+
+    function onItemBack()
+    {
+    	console.log('onItemBack()');
+    	removeDoingItem();
+    }
+
+	function removeDoingItem()
+	{
+    	console.log('removeDoingItem()');
+
+    	var doingItems = $('#doing-items-list > li'),
+		ndi = doingItems.length ;
+		switch( ndi )
+		{
+		case 0 :
+			return ;
+		case 1 :
+			loadFirstItems();
+			break;
+		default:
+			$(doingItems[ ndi-1 ]).remove();
+			var item = $(doingItems[ ndi-2 ]).prop('data-item');
+			fillNextItemsList( diaryBot.nextItems( item.id ) );
+		}
+
+	},
+
+	function addDoingItem( item )
+    {
+		console.log('addDoingItem()');
+
+		var doingItems = $('#doing-items-list > li'),
+
+		// Add a link between items
+
+		ndi = doingItems.length ;
+		switch( ndi )
+		{
+		case 0 :
+	    	diaryBot.linkItem( item );
+			break;
+		default:
+	    	diaryBot.linkItem( $(doingItems[ ndi-1 ]).prop('data-item'), item );
+		}
+
+    	var o = templates.doing_item.clone();
+    	$('span', o).html( item.label );
+    	o.prop('data-item', item );
+    	o.appendTo( '#doing-items-list' );
+    	//o.click( onDoingItemClick );
+
+    }
+
+    function fillNextItemsList( items, forceHigh )
+	{
+    	//console.log('fillNextItemsList()');
+
+		$('#next-items-list > li').remove();
+
+		items.forEach(function( item, index, array )
+		{
+			//console.log( index, item.label, item.weight );
+
+			var o ;
+
+			// select the template for rendering item: high or low
+
+			if( typeof forceHigh === 'undefined' )
+				o = item.weight > 0
+					? templates.next_item_high.clone()
+					: templates.next_item_low.clone() ;
+			else
+				o = templates.next_item_high.clone() ;
+
+			// construct a GUI element to hold the item
+
+			$('span', o).html(item.label );
+			o.prop('data-item', item );
+			o.click( onNextItemClick );
+			o.appendTo( '#next-items-list' );
+		});
+
+    }
 
     jQuery(function()
     {
-    	diaryCtl = new DiaryCtl();
+    	// Prepare doing items list
+
+		templates.doing_item = $('#template-doing-item').detach().removeAttr('id');
+		$('#doing-items-list > li').remove();
+
+		// Prepare next items list
+
+		templates.next_item_high = $('#template-next-item-high').detach().removeAttr('id');
+		templates.next_item_low = $('#template-next-item-low').detach().removeAttr('id');
+		$('#next-items-list > li').remove();
+
+		// Connecting buttons
+
+		$('#btn-db-create').click( onDbCreate );
+		$('#btn-db-load').click( onDbLoad );
+		$('#btn-db-save').click( onDbSave );
+
+		$('#btn-item-back').click( onItemBack );
+
     });
+
+    function loadFirstItems()
+    {
+    	$('#doing-items-list > li').remove();
+
+    	fillNextItemsList( diaryBot.nextItems() );
+    }
+
+    function onDbCreate()
+    {
+    	$('#page-loader').show();
+
+		jQuery.ajax('js/schema.txt')
+		.done( function( data, textStatus, jqXHR )
+		{
+			diaryBot.create( data );
+			loadFirstItems();
+		})
+		.fail( function( jqXHR, textStatus, error )
+		{
+			
+		})
+		.always(function()
+		{
+			$('#page-loader').hide();
+		});
+
+    }
+
+    function onDbLoad()
+    {
+    	$('#page-loader').show();
+
+    	var p = new Promise(function( resolve, reject )
+	   	{
+        	diaryBot.loadFromBinString( localStorage.getItem( 'diaryBotDb' ) );
+    		loadFirstItems();
+        	resolve();
+    	});
+    	p.then(function()
+    	{
+    		$('#page-loader').hide();
+    	});
+    }
+
+    function onDbSave()
+    {
+    	$('#page-loader').show();
+
+    	var p = new Promise(function( resolve, reject )
+    	{
+        	window.localStorage.setItem( 'diaryBotDb', diaryBot.toBinString() );
+        	resolve();
+    	});
+    	p.then(function()
+    	{
+    		$('#page-loader').hide();
+    	});
+
+    }
 
     </script>
 </body>

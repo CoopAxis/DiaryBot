@@ -1,6 +1,8 @@
 /**
- * diarybot.js
+ * diaryBot.js
  */
+
+"use strict";
 
 var diaryBot =
 {
@@ -16,9 +18,9 @@ var diaryBot =
 
 	initDb : function()
 	{
-		this.sthNextItemsFirst = this.db.prepare('SELECT * FROM items ORDER BY weight DESC' );
+		this.sthNextItemsFirst = this.db.prepare('SELECT * FROM items ORDER BY weight DESC, label ASC' );
 
-	    sql = 'SELECT i2.id, i2.label, i2.item_types_id, items_has_items.weight ';
+	    var sql = 'SELECT i2.id, i2.label, i2.item_types_id, items_has_items.weight ';
 	    sql+= ' FROM items i2' ;
 	    sql+= ' LEFT JOIN items_has_items ON ( items_id_next = i2.id )' ;
 	    //sql+= ' LEFT JOIN items i1 ON ( items_id = i1.id )' ;
@@ -26,7 +28,9 @@ var diaryBot =
 	    sql+= ' ORDER BY items_has_items.weight DESC, i2.label ASC' ;
 	    this.sthNextItemsNext = this.db.prepare( sql );
 
-	    this.sthNextItemsWithoutIds = this.db.prepare( 'SELECT * FROM items WHERE id NOT IN ( $filteredIds ) ORDER BY label ASC' );
+	    // The variable parameters binding is not possible with prepared stm
+	    //this.sthNextItemsWithoutIds = this.db.prepare( 'SELECT * FROM items WHERE id NOT IN ( $filteredIds ) ORDER BY label ASC' );
+	    this.sthNextItemsWithoutIds = this.db.prepare( 'SELECT * FROM items ORDER BY label ASC' );
 
 	    this.sthItemWeightFirstUpdate = this.db.prepare( 'UPDATE items SET weight = weight+1 WHERE id=$id' );
 
@@ -46,8 +50,8 @@ var diaryBot =
     	else
     	{
     		console.log('add weight to link "'+itemFrom.label+'"-"'+itemTo.label+'"');
-    		row = diaryBot.sthItemWeightNextSelect.get( { $idFrom:itemFrom.id, $idTo:itemTo.id } );
-    		if( row.length == 0 )
+    		var row = diaryBot.sthItemWeightNextSelect.get( { $idFrom:itemFrom.id, $idTo:itemTo.id } );
+    		if( typeof row === 'undefined' || row.length == 0 )
     		{
     			this.sthItemWeightNextInsert.run( { $idFrom:itemFrom.id, $idTo:itemTo.id } );	
     		}
@@ -65,6 +69,8 @@ var diaryBot =
 
 		if( typeof previousId === 'undefined' || previousId == null )
 		{
+			// Élément racine d'une story
+
 			var sth = self.sthNextItemsFirst ;
 			while( sth.step() )
 			{
@@ -73,22 +79,32 @@ var diaryBot =
 		}
 		else
 		{
-			var o,
-				filteredIds = [],
-				sth = self.sthNextItemsNext ;
+			// Éléments suivants d'une story
+
+			var sth, o, filteredIds = [];
+
+			sth = self.sthNextItemsNext ;
 		    sth.bind({$previousId:previousId});
 			while( sth.step() )
 			{
 				o = sth.getAsObject();
+				// The weight is the link's weight
 				console.log('found link ',o.label, o.weight);
 		        rows.push( o );
 		        filteredIds.push( o.id );
 			}
+
 			sth = self.sthNextItemsWithoutIds ;
-			sth.bind({$filteredIds:filteredIds.join(',')});
+			//sth.bind( {$filteredIds:filteredIds.join(',')} );
 			while( sth.step() )
 			{
 				o = sth.getAsObject();
+				if( filteredIds.indexOf(o.id) >= 0 )
+				{
+					// skip filtered ids
+					continue ;
+				}
+				// Remove item's weight
 				o.weight = 0 ;
 		        rows.push( o );
 			}
